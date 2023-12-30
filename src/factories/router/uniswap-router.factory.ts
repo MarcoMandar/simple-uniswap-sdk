@@ -409,7 +409,7 @@ export class UniswapRouterFactory {
         const routeCombo = routes.v3[i].route.map((c) => {
           return removeEthFromContractAddress(c.contractAddress);
         });
-        console.log('routeCombo', routeCombo);
+        // console.log('routeCombo', routeCombo);
         if (routeCombo.length == 2) {
           contractCallContext[
             this._settings.uniswapVersions.includes(UniswapVersion.v2) ? 1 : 0

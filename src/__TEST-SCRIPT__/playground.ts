@@ -15,7 +15,7 @@ import { ETH, EthersProvider, TradeDirection } from '../index';
 const routeTest = async () => {
   console.log('start', ETH.MAINNET().contractAddress)
   const fromTokenContractAddress =  ETH.MAINNET().contractAddress; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
-  const toTokenContractAddress = '0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36'; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
+  const toTokenContractAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F'; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
   const ethereumAddress = '0x37c81284caA97131339415687d192BF7D18F0f2a';
 
   const uniswapPair = new UniswapPair({

@@ -55,7 +55,7 @@ var routeTest = function () { return __awaiter(void 0, void 0, void 0, function 
             case 0:
                 console.log('start', index_1.ETH.MAINNET().contractAddress);
                 fromTokenContractAddress = index_1.ETH.MAINNET().contractAddress;
-                toTokenContractAddress = '0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36';
+                toTokenContractAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
                 ethereumAddress = '0x37c81284caA97131339415687d192BF7D18F0f2a';
                 uniswapPair = new uniswap_pair_1.UniswapPair({
                     fromTokenContractAddress: fromTokenContractAddress,
