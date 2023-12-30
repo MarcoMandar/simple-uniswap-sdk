@@ -92,7 +92,7 @@ export class UniswapRouterFactory {
     this._settings.cloneUniswapContractDetails
   );
 
-  private readonly LIQUIDITY_PROVIDER_FEE_V2 = 0.003;
+  private readonly LIQUIDITY_PROVIDER_FEE_V2 = 0.01;
 
   constructor(
     private _coinGecko: CoinGecko,
@@ -394,6 +394,7 @@ export class UniswapRouterFactory {
     }
 
     if (this._settings.uniswapVersions.includes(UniswapVersion.v3)) {
+      // console.log('routes', routes?.v3?.[0]?.route);
       contractCallContext.push({
         reference: UniswapVersion.v3,
         contractAddress: uniswapContracts.v3.getQuoterAddress(
@@ -408,7 +409,7 @@ export class UniswapRouterFactory {
         const routeCombo = routes.v3[i].route.map((c) => {
           return removeEthFromContractAddress(c.contractAddress);
         });
-
+        console.log('routeCombo', routeCombo);
         if (routeCombo.length == 2) {
           contractCallContext[
             this._settings.uniswapVersions.includes(UniswapVersion.v2) ? 1 : 0
@@ -453,6 +454,7 @@ export class UniswapRouterFactory {
     // console.log('contractCallContext', contractCallContext);
 
     const contractCallResults = await this._multicall.call(contractCallContext);
+    // console.log('contractCallResults', contractCallResults);
 
     return this.buildRouteQuotesFromResults(
       amountToTrade,
@@ -1532,6 +1534,11 @@ export class UniswapRouterFactory {
     return pools;
   }
 
+  // private sortRoutesByFee(routes: TokenRoutes) {
+  //   return routes.pairs.toTokenPairs?.sort((a, b) => (b?.fee ?? 0) - (a?.fee ?? 0)) ?? [];
+  // }
+
+  
   /**
    * Works out every possible route it can take - v2 only
    * @param fromTokenRoutes The from token routes
@@ -1549,19 +1556,24 @@ export class UniswapRouterFactory {
           isSameAddress(f.token.contractAddress, t.token.contractAddress)
         )
     );
+    // console.log(fromTokenRoutes.pairs.fromTokenPairs)
 
     const routes: RouteContext[] = [];
+    
     const directRoute = fromTokenRoutes.pairs.fromTokenPairs!.find((t) =>
       isSameAddress(
         t.token.contractAddress,
         toTokenRoutes.token.contractAddress
       )
     );
+
     if (directRoute) {
+      const isBlox =  fromTokenRoutes.token.symbol === "BLOX" || toTokenRoutes.token.symbol === "BLOX";
+
       routes.push({
         route: [fromTokenRoutes.token, toTokenRoutes.token],
         liquidityProviderFee: 0,
-        liquidityProviderFeesV3: [feeToPercent(directRoute.fee!)],
+        liquidityProviderFeesV3: [isBlox ? 0.01 : feeToPercent(directRoute.fee!)],
       });
     }
 
@@ -1575,12 +1587,15 @@ export class UniswapRouterFactory {
           )
         )
       ) {
+   
+
         const feeFrom2Main = fromTokenRoutes.pairs.fromTokenPairs!.find((t) =>
           isSameAddress(
             t.token.contractAddress,
             tokenRoute.token.contractAddress
           )
         )!.fee;
+        const isBloxFrom2Main = fromTokenRoutes.token.symbol === "BLOX";
 
         const feeMain2To = toTokenRoutes.pairs.toTokenPairs!.find((t) =>
           isSameAddress(
@@ -1588,13 +1603,14 @@ export class UniswapRouterFactory {
             tokenRoute.token.contractAddress
           )
         )!.fee;
+        const isBloxMain2To = toTokenRoutes.token.symbol === "BLOX";
 
         routes.push({
           route: [fromTokenRoutes.token, tokenRoute.token, toTokenRoutes.token],
           liquidityProviderFee: 0,
           liquidityProviderFeesV3: [
-            feeToPercent(feeFrom2Main!),
-            feeToPercent(feeMain2To!),
+            isBloxFrom2Main ?  0.01 : feeToPercent(feeFrom2Main!),
+            isBloxMain2To? 0.01 : feeToPercent(feeMain2To!),
           ],
         });
 
@@ -1619,8 +1635,11 @@ export class UniswapRouterFactory {
               workedOutFromRoute.filter(onlyUnique).length ===
               workedOutFromRoute.length
             ) {
+              
               const feeFrom2Support =
                 fromTokenRoutes.pairs.fromTokenPairs![f].fee;
+                const isBloxFrom2Support = fromTokenRoutes.pairs.fromTokenPairs![f].token.symbol === "BLOX";
+
               const feeSupport2Main = tokenRoute.pairs.toTokenPairs!.find(
                 (pair) =>
                   isSameAddress(
@@ -1633,9 +1652,9 @@ export class UniswapRouterFactory {
                 route: workedOutFromRoute,
                 liquidityProviderFee: 0,
                 liquidityProviderFeesV3: [
-                  feeToPercent(feeFrom2Support!),
+                  isBloxFrom2Support ? 0.01 : feeToPercent(feeFrom2Support!),
                   feeToPercent(feeSupport2Main!),
-                  feeToPercent(feeMain2To!),
+                  isBloxMain2To ? 0.01 : feeToPercent(feeMain2To!),
                 ],
               });
             }
@@ -1668,14 +1687,14 @@ export class UniswapRouterFactory {
                   toSupportedToken.contractAddress.toLowerCase()
               )!.fee;
               const feeSupport2To = toTokenRoutes.pairs.toTokenPairs![f].fee;
-
+              const isBloxSupport2To = toTokenRoutes.pairs.toTokenPairs![f].token.symbol === "BLOX";
               routes.push({
                 route: workedOutToRoute,
                 liquidityProviderFee: 0,
                 liquidityProviderFeesV3: [
-                  feeToPercent(feeFrom2Main!),
+                  isBloxFrom2Main ?  0.01 : feeToPercent(feeFrom2Main!),
                   feeToPercent(feeMain2Support!),
-                  feeToPercent(feeSupport2To!),
+                  isBloxSupport2To ? 0.01 : feeToPercent(feeSupport2To!),
                 ],
               });
             }
@@ -1768,6 +1787,7 @@ export class UniswapRouterFactory {
 
     for (const key in contractCallResults.results) {
       const contractCallReturnContext = contractCallResults.results[key];
+      // console.log(JSON.stringify(contractCallReturnContext, null, 4));
       if (contractCallReturnContext) {
         for (
           let i = 0;
