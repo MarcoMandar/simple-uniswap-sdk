@@ -297,7 +297,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                                 routeCombo = routes.v3[i].route.map(function (c) {
                                     return eth_1.removeEthFromContractAddress(c.contractAddress);
                                 });
-                                console.log('routeCombo', routeCombo);
+                                // console.log('routeCombo', routeCombo);
                                 if (routeCombo.length == 2) {
                                     contractCallContext[this._settings.uniswapVersions.includes(uniswap_version_1.UniswapVersion.v2) ? 1 : 0].calls.push({
                                         reference: "route" + i,
