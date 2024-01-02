@@ -15,7 +15,7 @@ import { CacheManager } from "../factories/router/cache-manager";
 const cacheManager = new CacheManager();
 const routeTest = async () => {
   // console.log("start", ETH.MAINNET().contractAddress);
-  const fromTokenContractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
+  const fromTokenContractAddress = ETH.MAINNET().contractAddress; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
   const toTokenContractAddress = "0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36"; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
   const ethereumAddress = "0x37c81284caA97131339415687d192BF7D18F0f2a";
 

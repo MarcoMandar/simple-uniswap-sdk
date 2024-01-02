@@ -108,18 +108,17 @@ var UniswapRouterFactory = /** @class */ (function () {
                         currentTime = Date.now();
                         fiveMinutes = 300000;
                         cacheInstance = this._cacheManager;
-                        console.log("cacheInstance", cacheInstance);
                         cache = cacheInstance.get(this._fromToken.contractAddress, this._toToken.contractAddress);
-                        if (!cache) {
-                            console.log("undefined cache", cache === null || cache === void 0 ? void 0 : cache.data);
-                        }
+                        // if (!cache) {
+                        //   console.log("undefined cache", cache?.data);
+                        // }
                         if (cache &&
                             currentTime - cache.lastFetch < fiveMinutes &&
                             cache.data &&
                             cache.data.data &&
                             cache.data.from === this.mainCurrenciesPairsForFromToken &&
                             cache.data.to === this.mainCurrenciesPairsForToToken) {
-                            console.log("cache", cache === null || cache === void 0 ? void 0 : cache.data);
+                            // console.log("cache", cache?.data);
                             return [2 /*return*/, cache.data.data];
                         }
                         findPairs = [];

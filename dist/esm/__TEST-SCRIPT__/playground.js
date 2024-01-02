@@ -53,8 +53,7 @@ var routeTest = function () { return __awaiter(void 0, void 0, void 0, function 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log("start", ETH.MAINNET().contractAddress);
-                fromTokenContractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+                fromTokenContractAddress = ETH.MAINNET().contractAddress;
                 toTokenContractAddress = "0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36";
                 ethereumAddress = "0x37c81284caA97131339415687d192BF7D18F0f2a";
                 uniswapPair = new UniswapPair({
