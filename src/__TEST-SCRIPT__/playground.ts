@@ -43,10 +43,7 @@ const routeTest = async () => {
 
   const uniswapPairFactory = await uniswapPair.createFactory();
 
-  const trade = await uniswapPairFactory.trade(
-    "1000000",
-    TradeDirection.output
-  );
+  const trade = await uniswapPairFactory.trade("1000000", TradeDirection.input);
 
   // console.log(new Date().getTime() - startTime);
   console.log(trade);

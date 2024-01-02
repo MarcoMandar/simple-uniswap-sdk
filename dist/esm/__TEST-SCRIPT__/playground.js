@@ -81,7 +81,7 @@ var routeTest = function () { return __awaiter(void 0, void 0, void 0, function 
                 return [4 /*yield*/, uniswapPair.createFactory()];
             case 1:
                 uniswapPairFactory = _a.sent();
-                return [4 /*yield*/, uniswapPairFactory.trade("1000000", TradeDirection.output)];
+                return [4 /*yield*/, uniswapPairFactory.trade("1000000", TradeDirection.input)];
             case 2:
                 trade = _a.sent();
                 // console.log(new Date().getTime() - startTime);

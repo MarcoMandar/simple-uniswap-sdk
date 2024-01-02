@@ -10,7 +10,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UniswapContractQuoterV3Public = exports.UniswapContractFactoryV3Public = exports.UniswapContractFactoryV2Public = exports.TokensFactoryPublic = exports.TokenFactoryPublic = exports.UniswapRouterContractFactoryV3Public = exports.UniswapRouterContractFactoryV2Public = exports.UniswapPairContractFactoryPublicV2 = exports.UniswapPairFactory = exports.UniswapPair = exports.UniswapPairSettings = exports.TradeDirection = exports.EthersProvider = exports.UniswapVersion = exports.ChainId = exports.getAddress = exports.deepClone = exports.UniswapError = exports.ErrorCodes = exports.UniswapSubscription = exports.UniswapStream = void 0;
+exports.CacheManager = exports.UniswapContractQuoterV3Public = exports.UniswapContractFactoryV3Public = exports.UniswapContractFactoryV2Public = exports.TokensFactoryPublic = exports.TokenFactoryPublic = exports.UniswapRouterContractFactoryV3Public = exports.UniswapRouterContractFactoryV2Public = exports.UniswapPairContractFactoryPublicV2 = exports.UniswapPairFactory = exports.UniswapPair = exports.UniswapPairSettings = exports.TradeDirection = exports.EthersProvider = exports.UniswapVersion = exports.ChainId = exports.getAddress = exports.deepClone = exports.UniswapError = exports.ErrorCodes = exports.UniswapSubscription = exports.UniswapStream = void 0;
 var rxjs_1 = require("rxjs");
 Object.defineProperty(exports, "UniswapStream", { enumerable: true, get: function () { return rxjs_1.Observable; } });
 Object.defineProperty(exports, "UniswapSubscription", { enumerable: true, get: function () { return rxjs_1.Subscription; } });
@@ -53,3 +53,5 @@ var uniswap_contract_factory_v3_public_1 = require("./factories/uniswap-factory/
 Object.defineProperty(exports, "UniswapContractFactoryV3Public", { enumerable: true, get: function () { return uniswap_contract_factory_v3_public_1.UniswapContractFactoryV3Public; } });
 var uniswap_contract_quoter_v3_public_1 = require("./factories/uniswap-quoter/v3/uniswap-contract.quoter.v3.public");
 Object.defineProperty(exports, "UniswapContractQuoterV3Public", { enumerable: true, get: function () { return uniswap_contract_quoter_v3_public_1.UniswapContractQuoterV3Public; } });
+var cache_manager_1 = require("./factories/router/cache-manager");
+Object.defineProperty(exports, "CacheManager", { enumerable: true, get: function () { return cache_manager_1.CacheManager; } });
