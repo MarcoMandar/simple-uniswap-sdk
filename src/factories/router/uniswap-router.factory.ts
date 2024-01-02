@@ -118,14 +118,14 @@ export class UniswapRouterFactory {
     const currentTime = Date.now();
     const fiveMinutes = 300000; // 5 minutes in milliseconds
     const cacheInstance = this._cacheManager;
-    console.log("cacheInstance", cacheInstance);
+    // console.log("cacheInstance", cacheInstance);
     const cache = cacheInstance.get(
       this._fromToken.contractAddress,
       this._toToken.contractAddress
     );
-    if (!cache) {
-      console.log("undefined cache", cache?.data);
-    }
+    // if (!cache) {
+    //   console.log("undefined cache", cache?.data);
+    // }
     if (
       cache &&
       currentTime - cache.lastFetch < fiveMinutes &&
@@ -134,7 +134,7 @@ export class UniswapRouterFactory {
       cache.data.from === this.mainCurrenciesPairsForFromToken &&
       cache.data.to === this.mainCurrenciesPairsForToToken
     ) {
-      console.log("cache", cache?.data);
+      // console.log("cache", cache?.data);
       return cache.data.data;
     }
 
