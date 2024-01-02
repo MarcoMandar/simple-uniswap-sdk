@@ -1,14 +1,14 @@
-import { CoinGecko } from '../../coin-gecko';
-import { UniswapVersion } from '../../enums/uniswap-version';
-import { AllPossibleRoutes } from '../router/models/all-possible-routes';
-import { BestRouteQuotes } from '../router/models/best-route-quotes';
-import { RouteQuote } from '../router/models/route-quote';
-import { AllowanceAndBalanceOf } from '../token/models/allowance-balance-of';
-import { Token } from '../token/models/token';
-import { TradeContext } from './models/trade-context';
-import { TradeDirection } from './models/trade-direction';
-import { Transaction } from './models/transaction';
-import { UniswapPairFactoryContext } from './models/uniswap-pair-factory-context';
+import { CoinGecko } from "../../coin-gecko";
+import { UniswapVersion } from "../../enums/uniswap-version";
+import { AllPossibleRoutes } from "../router/models/all-possible-routes";
+import { BestRouteQuotes } from "../router/models/best-route-quotes";
+import { RouteQuote } from "../router/models/route-quote";
+import { AllowanceAndBalanceOf } from "../token/models/allowance-balance-of";
+import { Token } from "../token/models/token";
+import { TradeContext } from "./models/trade-context";
+import { TradeDirection } from "./models/trade-direction";
+import { Transaction } from "./models/transaction";
+import { UniswapPairFactoryContext } from "./models/uniswap-pair-factory-context";
 export declare class UniswapPairFactory {
     private _coinGecko;
     private _uniswapPairFactoryContext;

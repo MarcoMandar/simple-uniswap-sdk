@@ -1,30 +1,30 @@
-import BigNumber from 'bignumber.js';
-import { Subject } from 'rxjs';
-import { CoinGecko } from '../../coin-gecko';
-import { Constants } from '../../common/constants';
-import { ErrorCodes } from '../../common/errors/error-codes';
-import { UniswapError } from '../../common/errors/uniswap-error';
+import BigNumber from "bignumber.js";
+import { Subject } from "rxjs";
+import { CoinGecko } from "../../coin-gecko";
+import { Constants } from "../../common/constants";
+import { ErrorCodes } from "../../common/errors/error-codes";
+import { UniswapError } from "../../common/errors/uniswap-error";
 import {
   removeEthFromContractAddress,
   turnTokenIntoEthForResponse,
-} from '../../common/tokens/eth';
-import { deepClone } from '../../common/utils/deep-clone';
-import { getTradePath } from '../../common/utils/trade-path';
-import { TradePath } from '../../enums/trade-path';
-import { UniswapVersion } from '../../enums/uniswap-version';
-import { uniswapContracts } from '../../uniswap-contract-context/get-uniswap-contracts';
-import { AllPossibleRoutes } from '../router/models/all-possible-routes';
-import { BestRouteQuotes } from '../router/models/best-route-quotes';
-import { RouteQuote } from '../router/models/route-quote';
-import { UniswapRouterFactory } from '../router/uniswap-router.factory';
-import { AllowanceAndBalanceOf } from '../token/models/allowance-balance-of';
-import { Token } from '../token/models/token';
-import { TokenFactory } from '../token/token.factory';
-import { CurrentTradeContext } from './models/current-trade-context';
-import { TradeContext } from './models/trade-context';
-import { TradeDirection } from './models/trade-direction';
-import { Transaction } from './models/transaction';
-import { UniswapPairFactoryContext } from './models/uniswap-pair-factory-context';
+} from "../../common/tokens/eth";
+import { deepClone } from "../../common/utils/deep-clone";
+import { getTradePath } from "../../common/utils/trade-path";
+import { TradePath } from "../../enums/trade-path";
+import { UniswapVersion } from "../../enums/uniswap-version";
+import { uniswapContracts } from "../../uniswap-contract-context/get-uniswap-contracts";
+import { AllPossibleRoutes } from "../router/models/all-possible-routes";
+import { BestRouteQuotes } from "../router/models/best-route-quotes";
+import { RouteQuote } from "../router/models/route-quote";
+import { UniswapRouterFactory } from "../router/uniswap-router.factory";
+import { AllowanceAndBalanceOf } from "../token/models/allowance-balance-of";
+import { Token } from "../token/models/token";
+import { TokenFactory } from "../token/token.factory";
+import { CurrentTradeContext } from "./models/current-trade-context";
+import { TradeContext } from "./models/trade-context";
+import { TradeDirection } from "./models/trade-direction";
+import { Transaction } from "./models/transaction";
+import { UniswapPairFactoryContext } from "./models/uniswap-pair-factory-context";
 
 export class UniswapPairFactory {
   private _fromTokenFactory = new TokenFactory(
@@ -46,7 +46,8 @@ export class UniswapPairFactory {
     this._uniswapPairFactoryContext.fromToken,
     this._uniswapPairFactoryContext.toToken,
     this._uniswapPairFactoryContext.settings,
-    this._uniswapPairFactoryContext.ethersProvider
+    this._uniswapPairFactoryContext.ethersProvider,
+    this._uniswapPairFactoryContext.cacheManager
   );
 
   private _watchingBlocks = false;
@@ -234,7 +235,7 @@ export class UniswapPairFactory {
    */
   public async allowance(uniswapVersion: UniswapVersion): Promise<string> {
     if (this.tradePath() === TradePath.ethToErc20) {
-      return '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+      return "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     }
 
     const allowance = await this._fromTokenFactory.allowance(
@@ -255,7 +256,7 @@ export class UniswapPairFactory {
   ): Promise<Transaction> {
     if (this.tradePath() === TradePath.ethToErc20) {
       throw new UniswapError(
-        'You do not need to generate approve uniswap allowance when doing eth > erc20',
+        "You do not need to generate approve uniswap allowance when doing eth > erc20",
         ErrorCodes.generateApproveMaxAllowanceDataNotAllowed
       );
     }
@@ -268,7 +269,7 @@ export class UniswapPairFactory {
         : uniswapContracts.v3.getRouterAddress(
             this._uniswapPairFactoryContext.settings.cloneUniswapContractDetails
           ),
-      '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+      "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     );
 
     return {
@@ -320,7 +321,7 @@ export class UniswapPairFactory {
     );
 
     const bestRouteQuote = bestRouteQuotes.bestRouteQuote;
-    
+
     const tradeContext: TradeContext = {
       uniswapVersion: bestRouteQuote.uniswapVersion,
       quoteDirection: direction,
@@ -334,11 +335,22 @@ export class UniswapPairFactory {
           ? null
           : bestRouteQuote.expectedConvertQuoteOrTokenAmountInMaxWithSlippage,
       expectedConvertQuote: bestRouteQuote.expectedConvertQuote,
-      liquidityProviderFee: direction === TradeDirection.input
-      ? baseConvertRequest.times(bestRouteQuote.uniswapVersion === UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee).toFixed(this.fromToken.decimals)
-      : new BigNumber(bestRouteQuote.expectedConvertQuote)
-          .times(bestRouteQuote.uniswapVersion === UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee)
-          .toFixed(this.fromToken.decimals),
+      liquidityProviderFee:
+        direction === TradeDirection.input
+          ? baseConvertRequest
+              .times(
+                bestRouteQuote.uniswapVersion === UniswapVersion.v3
+                  ? 0
+                  : bestRouteQuote.liquidityProviderFee
+              )
+              .toFixed(this.fromToken.decimals)
+          : new BigNumber(bestRouteQuote.expectedConvertQuote)
+              .times(
+                bestRouteQuote.uniswapVersion === UniswapVersion.v3
+                  ? 0
+                  : bestRouteQuote.liquidityProviderFee
+              )
+              .toFixed(this.fromToken.decimals),
       liquidityProviderFeePercent: bestRouteQuote.liquidityProviderFee,
       liquidityProviderFeesV3: bestRouteQuote.liquidityProviderFeesV3.map((f) =>
         direction === TradeDirection.input
@@ -410,11 +422,22 @@ export class UniswapPairFactory {
           ? null
           : bestRouteQuote.expectedConvertQuoteOrTokenAmountInMaxWithSlippage,
       expectedConvertQuote: bestRouteQuote.expectedConvertQuote,
-      liquidityProviderFee: direction === TradeDirection.input
-      ? baseConvertRequest.times(bestRouteQuote.uniswapVersion === UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee).toFixed(this.fromToken.decimals)
-      : new BigNumber(bestRouteQuote.expectedConvertQuote)
-          .times(bestRouteQuote.uniswapVersion === UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee)
-          .toFixed(this.fromToken.decimals),
+      liquidityProviderFee:
+        direction === TradeDirection.input
+          ? baseConvertRequest
+              .times(
+                bestRouteQuote.uniswapVersion === UniswapVersion.v3
+                  ? 0
+                  : bestRouteQuote.liquidityProviderFee
+              )
+              .toFixed(this.fromToken.decimals)
+          : new BigNumber(bestRouteQuote.expectedConvertQuote)
+              .times(
+                bestRouteQuote.uniswapVersion === UniswapVersion.v3
+                  ? 0
+                  : bestRouteQuote.liquidityProviderFee
+              )
+              .toFixed(this.fromToken.decimals),
       liquidityProviderFeePercent: bestRouteQuote.liquidityProviderFee,
       liquidityProviderFeesV3: bestRouteQuote.liquidityProviderFeesV3.map((f) =>
         direction === TradeDirection.input
@@ -481,11 +504,22 @@ export class UniswapPairFactory {
           ? null
           : bestRouteQuote.expectedConvertQuoteOrTokenAmountInMaxWithSlippage,
       expectedConvertQuote: bestRouteQuote.expectedConvertQuote,
-      liquidityProviderFee: direction === TradeDirection.input
-      ? baseConvertRequest.times(bestRouteQuote.uniswapVersion === UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee).toFixed(this.fromToken.decimals)
-      : new BigNumber(bestRouteQuote.expectedConvertQuote)
-          .times(bestRouteQuote.uniswapVersion === UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee)
-          .toFixed(this.fromToken.decimals),
+      liquidityProviderFee:
+        direction === TradeDirection.input
+          ? baseConvertRequest
+              .times(
+                bestRouteQuote.uniswapVersion === UniswapVersion.v3
+                  ? 0
+                  : bestRouteQuote.liquidityProviderFee
+              )
+              .toFixed(this.fromToken.decimals)
+          : new BigNumber(bestRouteQuote.expectedConvertQuote)
+              .times(
+                bestRouteQuote.uniswapVersion === UniswapVersion.v3
+                  ? 0
+                  : bestRouteQuote.liquidityProviderFee
+              )
+              .toFixed(this.fromToken.decimals),
       liquidityProviderFeePercent: bestRouteQuote.liquidityProviderFee,
       liquidityProviderFeesV3: bestRouteQuote.liquidityProviderFeesV3.map((f) =>
         direction === TradeDirection.input
@@ -544,7 +578,7 @@ export class UniswapPairFactory {
   private watchTradePrice(): void {
     if (!this._watchingBlocks) {
       this._uniswapPairFactoryContext.ethersProvider.provider.on(
-        'block',
+        "block",
         async () => {
           await this.handleNewBlock();
         }
@@ -558,7 +592,7 @@ export class UniswapPairFactory {
    */
   private unwatchTradePrice(): void {
     this._uniswapPairFactoryContext.ethersProvider.provider.removeAllListeners(
-      'block'
+      "block"
     );
     this._watchingBlocks = false;
   }

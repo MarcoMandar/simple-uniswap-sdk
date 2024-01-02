@@ -1,8 +1,9 @@
-import { ChainId } from '../enums/chain-id';
-import { UniswapVersion } from '../enums/uniswap-version';
-import { UniswapPairSettings } from '../factories/pair/models/uniswap-pair-settings';
-import { UniswapPair } from '../factories/pair/uniswap-pair';
-import { ETH, EthersProvider, TradeDirection } from '../index';
+import { ChainId } from "../enums/chain-id";
+import { UniswapVersion } from "../enums/uniswap-version";
+import { UniswapPairSettings } from "../factories/pair/models/uniswap-pair-settings";
+import { UniswapPair } from "../factories/pair/uniswap-pair";
+import { ETH, /*EthersProvider,*/ TradeDirection } from "../index";
+import { CacheManager } from "../factories/router/cache-manager";
 
 // WBTC - 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599
 // FUN - 0x419D0d8BdD9aF5e606Ae2232ed285Aff190E711b
@@ -11,18 +12,19 @@ import { ETH, EthersProvider, TradeDirection } from '../index';
 // UNI - 0x1f9840a85d5af5bf1d1762f925bdaddc4201f984
 // AAVE - 0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9
 // GTC - 0xde30da39c46104798bb5aa3fe8b9e0e1f348163f
-
+const cacheManager = new CacheManager();
 const routeTest = async () => {
-  console.log('start', ETH.MAINNET().contractAddress)
-  const fromTokenContractAddress =  ETH.MAINNET().contractAddress; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
-  const toTokenContractAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F'; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
-  const ethereumAddress = '0x37c81284caA97131339415687d192BF7D18F0f2a';
+  console.log("start", ETH.MAINNET().contractAddress);
+  const fromTokenContractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
+  const toTokenContractAddress = "0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36"; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
+  const ethereumAddress = "0x37c81284caA97131339415687d192BF7D18F0f2a";
 
   const uniswapPair = new UniswapPair({
     fromTokenContractAddress,
     toTokenContractAddress,
     ethereumAddress,
     chainId: ChainId.MAINNET,
+    cacheManager: cacheManager,
     settings: new UniswapPairSettings({
       // if not supplied it use `0.005` which is 0.5%;
       // all figures
@@ -32,20 +34,30 @@ const routeTest = async () => {
       disableMultihops: false,
       uniswapVersions: [UniswapVersion.v2, UniswapVersion.v3],
       gasSettings: {
-        getGasPrice: async () => '90',
+        getGasPrice: async () => "90",
       },
     }),
   });
 
-  const startTime = new Date().getTime();
+  // const startTime = new Date().getTime();
 
   const uniswapPairFactory = await uniswapPair.createFactory();
 
-  const trade = await uniswapPairFactory.trade('0.0001', TradeDirection.input);
+  const trade = await uniswapPairFactory.trade(
+    "1000000",
+    TradeDirection.output
+  );
 
-  console.log(new Date().getTime() - startTime);
+  // console.log(new Date().getTime() - startTime);
   console.log(trade);
-
+  const expectedConvertQuote = parseFloat(trade.expectedConvertQuote);
+  const baseConvertRequest = parseFloat(trade.baseConvertRequest);
+  const expectedConvertQuote2 = parseFloat(trade.expectedConvertQuote);
+  console.log({
+    expectedConvertQuote,
+    baseConvertRequest,
+    expectedConvertQuote2,
+  });
   // console.log(JSON.stringify(trade, null, 4));
   // console.log(trade);
   // console.log(
@@ -54,8 +66,8 @@ const routeTest = async () => {
   //   )
   // );
 
-  const ethers = new EthersProvider({ chainId: ChainId.MAINNET });
-  await ethers.provider.estimateGas(trade.transaction);
+  // const ethers = new EthersProvider({ chainId: ChainId.MAINNET });
+  // await ethers.provider.estimateGas(trade.transaction);
   // console.log(
   //   'gas',
   //   (await ethers.provider.estimateGas(trade.transaction)).toHexString()
@@ -99,4 +111,25 @@ const routeTest = async () => {
   // console.log(data);
 };
 
-routeTest();
+const runTestWithDelay = async (delay: number, count = 3) => {
+  for (let i = 0; i < count; i++) {
+    console.log(
+      `Running test iteration: ${
+        i + 1
+      } - Timestamp: ${new Date().toISOString()}`
+    );
+    const start = new Date().getTime();
+
+    await routeTest();
+
+    const end = new Date().getTime();
+    const duration = end - start;
+    console.log(`Iteration ${i + 1} completed. Time taken: ${duration} ms`);
+    console.log("------------------------------------");
+
+    if (i < count - 1) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+};
+runTestWithDelay(2000);

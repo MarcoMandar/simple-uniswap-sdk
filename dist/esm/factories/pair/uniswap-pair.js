@@ -34,39 +34,64 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { CoinGecko } from '../../coin-gecko';
-import { ErrorCodes } from '../../common/errors/error-codes';
-import { UniswapError } from '../../common/errors/uniswap-error';
-import { getAddress } from '../../common/utils/get-address';
-import { isAddress } from '../../common/utils/is-address';
-import { ChainId } from '../../enums/chain-id';
-import { EthersProvider } from '../../ethers-provider';
-import { TokensFactory } from '../token/tokens.factory';
-import { UniswapPairSettings } from './models/uniswap-pair-settings';
-import { UniswapPairFactory } from './uniswap-pair.factory';
+import { CoinGecko } from "../../coin-gecko";
+import { ErrorCodes } from "../../common/errors/error-codes";
+import { UniswapError } from "../../common/errors/uniswap-error";
+import { getAddress } from "../../common/utils/get-address";
+import { isAddress } from "../../common/utils/is-address";
+import { ChainId } from "../../enums/chain-id";
+import { EthersProvider } from "../../ethers-provider";
+import { TokensFactory } from "../token/tokens.factory";
+import { UniswapPairSettings } from "./models/uniswap-pair-settings";
+import { UniswapPairFactory } from "./uniswap-pair.factory";
 var UniswapPair = /** @class */ (function () {
     function UniswapPair(_uniswapPairContext) {
+        var _this = this;
         var _a, _b;
         this._uniswapPairContext = _uniswapPairContext;
         if (!this._uniswapPairContext.fromTokenContractAddress) {
-            throw new UniswapError('Must have a `fromTokenContractAddress` on the context', ErrorCodes.fromTokenContractAddressRequired);
+            throw new UniswapError("Must have a `fromTokenContractAddress` on the context", ErrorCodes.fromTokenContractAddressRequired);
         }
         if (!isAddress(this._uniswapPairContext.fromTokenContractAddress)) {
-            throw new UniswapError('`fromTokenContractAddress` is not a valid contract address', ErrorCodes.fromTokenContractAddressNotValid);
+            throw new UniswapError("`fromTokenContractAddress` is not a valid contract address", ErrorCodes.fromTokenContractAddressNotValid);
         }
         this._uniswapPairContext.fromTokenContractAddress = getAddress(this._uniswapPairContext.fromTokenContractAddress, true);
+        this._cacheManager = this._uniswapPairContext.cacheManager || {
+            cache: {},
+            getCacheKey: function (fromToken, toToken) {
+                return fromToken + "-" + toToken;
+            },
+            get: function (fromToken, toToken) {
+                var key = this.getCacheKey(fromToken, toToken);
+                return this.cache[key];
+            },
+            set: function (fromToken, toToken, data) {
+                var key = this.getCacheKey(fromToken, toToken);
+                this.cache[key] = {
+                    lastFetch: Date.now(),
+                    data: data,
+                };
+            },
+            isValid: function (fromToken, toToken) {
+                var cacheEntry = _this._cacheManager.get(fromToken, toToken);
+                if (!cacheEntry)
+                    return false;
+                var fiveMinutes = 300000; // 5 minutes in milliseconds
+                return Date.now() - cacheEntry.lastFetch < fiveMinutes;
+            },
+        };
         if (!this._uniswapPairContext.toTokenContractAddress) {
-            throw new UniswapError('Must have a `toTokenContractAddress` on the context', ErrorCodes.toTokenContractAddressRequired);
+            throw new UniswapError("Must have a `toTokenContractAddress` on the context", ErrorCodes.toTokenContractAddressRequired);
         }
         if (!isAddress(this._uniswapPairContext.toTokenContractAddress)) {
-            throw new UniswapError('`toTokenContractAddress` is not a valid contract address', ErrorCodes.toTokenContractAddressNotValid);
+            throw new UniswapError("`toTokenContractAddress` is not a valid contract address", ErrorCodes.toTokenContractAddressNotValid);
         }
         this._uniswapPairContext.toTokenContractAddress = getAddress(this._uniswapPairContext.toTokenContractAddress, true);
         if (!this._uniswapPairContext.ethereumAddress) {
-            throw new UniswapError('Must have a `ethereumAddress` on the context', ErrorCodes.ethereumAddressRequired);
+            throw new UniswapError("Must have a `ethereumAddress` on the context", ErrorCodes.ethereumAddressRequired);
         }
         if (!isAddress(this._uniswapPairContext.ethereumAddress)) {
-            throw new UniswapError('`ethereumAddress` is not a valid address', ErrorCodes.ethereumAddressNotValid);
+            throw new UniswapError("`ethereumAddress` is not a valid address", ErrorCodes.ethereumAddressNotValid);
         }
         this._uniswapPairContext.ethereumAddress = getAddress(this._uniswapPairContext.ethereumAddress);
         var chainId = this._uniswapPairContext
@@ -92,7 +117,7 @@ var UniswapPair = /** @class */ (function () {
             });
             return;
         }
-        throw new UniswapError('Your must supply a chainId or a ethereum provider please look at types `UniswapPairContextForEthereumProvider`, `UniswapPairContextForChainId` and `UniswapPairContextForProviderUrl` to make sure your object is correct in what your passing in', ErrorCodes.invalidPairContext);
+        throw new UniswapError("Your must supply a chainId or a ethereum provider please look at types `UniswapPairContextForEthereumProvider`, `UniswapPairContextForChainId` and `UniswapPairContextForProviderUrl` to make sure your object is correct in what your passing in", ErrorCodes.invalidPairContext);
     }
     /**
      * Create factory to be able to call methods on the 2 tokens
@@ -134,6 +159,7 @@ var UniswapPair = /** @class */ (function () {
                             ethereumAddress: this._uniswapPairContext.ethereumAddress,
                             settings: this._uniswapPairContext.settings || new UniswapPairSettings(),
                             ethersProvider: this._ethersProvider,
+                            cacheManager: this._cacheManager,
                         };
                         return [2 /*return*/, new UniswapPairFactory(new CoinGecko(), uniswapFactoryContext)];
                 }

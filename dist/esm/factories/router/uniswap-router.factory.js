@@ -41,40 +41,40 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
             r[k] = a[j];
     return r;
 };
-import BigNumber from 'bignumber.js';
-import { Constants } from '../../common/constants';
-import { ErrorCodes } from '../../common/errors/error-codes';
-import { UniswapError } from '../../common/errors/uniswap-error';
-import { COMP } from '../../common/tokens/comp';
-import { DAI } from '../../common/tokens/dai';
-import { ETH_SYMBOL, isNativeEth, removeEthFromContractAddress, turnTokenIntoEthForResponse, } from '../../common/tokens/eth';
-import { USDC } from '../../common/tokens/usdc';
-import { USDT } from '../../common/tokens/usdt';
-import { WBTC } from '../../common/tokens/wbtc';
-import { WETHContract } from '../../common/tokens/weth';
-import { deepClone } from '../../common/utils/deep-clone';
-import { formatEther } from '../../common/utils/format-ether';
-import { hexlify } from '../../common/utils/hexlify';
-import { isSameAddress } from '../../common/utils/is-same-address';
-import { onlyUnique } from '../../common/utils/only-unique';
-import { parseEther } from '../../common/utils/parse-ether';
-import { toEthersBigNumber } from '../../common/utils/to-ethers-big-number';
-import { getTradePath } from '../../common/utils/trade-path';
-import { CustomMulticall } from '../../custom-multicall';
-import { ChainId } from '../../enums/chain-id';
-import { TradePath } from '../../enums/trade-path';
-import { UniswapVersion } from '../../enums/uniswap-version';
-import { uniswapContracts } from '../../uniswap-contract-context/get-uniswap-contracts';
-import { UniswapContractContextV2 } from '../../uniswap-contract-context/uniswap-contract-context-v2';
-import { UniswapContractContextV3 } from '../../uniswap-contract-context/uniswap-contract-context-v3';
-import { TradeDirection } from '../pair/models/trade-direction';
-import { TokensFactory } from '../token/tokens.factory';
-import { RouterDirection } from './enums/router-direction';
-import { UniswapRouterContractFactoryV2 } from './v2/uniswap-router-contract.factory.v2';
-import { FeeAmount, feeToPercent, percentToFeeAmount, } from './v3/enums/fee-amount-v3';
-import { UniswapRouterContractFactoryV3 } from './v3/uniswap-router-contract.factory.v3';
+import BigNumber from "bignumber.js";
+import { Constants } from "../../common/constants";
+import { ErrorCodes } from "../../common/errors/error-codes";
+import { UniswapError } from "../../common/errors/uniswap-error";
+import { COMP } from "../../common/tokens/comp";
+import { DAI } from "../../common/tokens/dai";
+import { ETH_SYMBOL, isNativeEth, removeEthFromContractAddress, turnTokenIntoEthForResponse, } from "../../common/tokens/eth";
+import { USDC } from "../../common/tokens/usdc";
+import { USDT } from "../../common/tokens/usdt";
+import { WBTC } from "../../common/tokens/wbtc";
+import { WETHContract } from "../../common/tokens/weth";
+import { deepClone } from "../../common/utils/deep-clone";
+import { formatEther } from "../../common/utils/format-ether";
+import { hexlify } from "../../common/utils/hexlify";
+import { isSameAddress } from "../../common/utils/is-same-address";
+import { onlyUnique } from "../../common/utils/only-unique";
+import { parseEther } from "../../common/utils/parse-ether";
+import { toEthersBigNumber } from "../../common/utils/to-ethers-big-number";
+import { getTradePath } from "../../common/utils/trade-path";
+import { CustomMulticall } from "../../custom-multicall";
+import { ChainId } from "../../enums/chain-id";
+import { TradePath } from "../../enums/trade-path";
+import { UniswapVersion } from "../../enums/uniswap-version";
+import { uniswapContracts } from "../../uniswap-contract-context/get-uniswap-contracts";
+import { UniswapContractContextV2 } from "../../uniswap-contract-context/uniswap-contract-context-v2";
+import { UniswapContractContextV3 } from "../../uniswap-contract-context/uniswap-contract-context-v3";
+import { TradeDirection } from "../pair/models/trade-direction";
+import { TokensFactory } from "../token/tokens.factory";
+import { RouterDirection } from "./enums/router-direction";
+import { UniswapRouterContractFactoryV2 } from "./v2/uniswap-router-contract.factory.v2";
+import { FeeAmount, feeToPercent, percentToFeeAmount, } from "./v3/enums/fee-amount-v3";
+import { UniswapRouterContractFactoryV3 } from "./v3/uniswap-router-contract.factory.v3";
 var UniswapRouterFactory = /** @class */ (function () {
-    function UniswapRouterFactory(_coinGecko, _ethereumAddress, _fromToken, _toToken, _settings, _ethersProvider) {
+    function UniswapRouterFactory(_coinGecko, _ethereumAddress, _fromToken, _toToken, _settings, _ethersProvider, _cacheManager) {
         var _a, _b;
         this._coinGecko = _coinGecko;
         this._ethereumAddress = _ethereumAddress;
@@ -82,6 +82,7 @@ var UniswapRouterFactory = /** @class */ (function () {
         this._toToken = _toToken;
         this._settings = _settings;
         this._ethersProvider = _ethersProvider;
+        this._cacheManager = _cacheManager;
         this._multicall = new CustomMulticall(this._ethersProvider.provider, (_b = (_a = this._settings) === null || _a === void 0 ? void 0 : _a.customNetwork) === null || _b === void 0 ? void 0 : _b.multicallContractAddress);
         this._uniswapRouterContractFactoryV2 = new UniswapRouterContractFactoryV2(this._ethersProvider, uniswapContracts.v2.getRouterAddress(this._settings.cloneUniswapContractDetails), uniswapContracts.v2.getRouterAbi(this._settings.cloneUniswapContractDetails), uniswapContracts.v2.getRouterMethods(this._settings.cloneUniswapContractDetails));
         this._uniswapRouterContractFactoryV3 = new UniswapRouterContractFactoryV3(this._ethersProvider, uniswapContracts.v3.getRouterAddress(this._settings.cloneUniswapContractDetails), uniswapContracts.v3.getRouterAbi(this._settings.cloneUniswapContractDetails));
@@ -94,10 +95,27 @@ var UniswapRouterFactory = /** @class */ (function () {
      */
     UniswapRouterFactory.prototype.getAllPossibleRoutes = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var findPairs, contractCallContext, pairs, tokenPairs, fromToken, toToken, v3Calls, pairs, tokenPairs, fromToken, toToken, fee, feeAmount, allPossibleRoutes, contractCallResults, results, availablePairs, fromTokenRoutes, toTokenRoutes, allMainRoutes, i, fromTokenPairs, toTokenPairs, results, availablePairs, fromTokenRoutes, toTokenRoutes, allMainRoutes, i, fromTokenPairs, toTokenPairs;
+            var currentTime, fiveMinutes, cacheInstance, cache, findPairs, contractCallContext, pairs, tokenPairs, fromToken, toToken, v3Calls, pairs, tokenPairs, fromToken, toToken, fee, feeAmount, allPossibleRoutes, contractCallResults, results, availablePairs, fromTokenRoutes, toTokenRoutes, allMainRoutes, i, fromTokenPairs, toTokenPairs, results, availablePairs, fromTokenRoutes, toTokenRoutes, allMainRoutes, i, fromTokenPairs, toTokenPairs, newCache;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        currentTime = Date.now();
+                        fiveMinutes = 300000;
+                        cacheInstance = this._cacheManager;
+                        console.log("cacheInstance", cacheInstance);
+                        cache = cacheInstance.get(this._fromToken.contractAddress, this._toToken.contractAddress);
+                        if (!cache) {
+                            console.log("undefined cache", cache === null || cache === void 0 ? void 0 : cache.data);
+                        }
+                        if (cache &&
+                            currentTime - cache.lastFetch < fiveMinutes &&
+                            cache.data &&
+                            cache.data.data &&
+                            cache.data.from === this.mainCurrenciesPairsForFromToken &&
+                            cache.data.to === this.mainCurrenciesPairsForToToken) {
+                            console.log("cache", cache === null || cache === void 0 ? void 0 : cache.data);
+                            return [2 /*return*/, cache.data.data];
+                        }
                         findPairs = [];
                         if (!this._settings.disableMultihops) {
                             findPairs = [
@@ -132,7 +150,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                                         continue;
                                     contractCallContext[0].calls.push({
                                         reference: fromToken.contractAddress + "-" + toToken.contractAddress + "-" + fromToken.symbol + "/" + toToken.symbol,
-                                        methodName: 'getPair',
+                                        methodName: "getPair",
                                         methodParameters: [
                                             removeEthFromContractAddress(fromToken.contractAddress),
                                             removeEthFromContractAddress(toToken.contractAddress),
@@ -154,7 +172,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                                         feeAmount = [FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH][fee];
                                         v3Calls.push({
                                             reference: fromToken.contractAddress + "-" + toToken.contractAddress + "-" + fromToken.symbol + "/" + toToken.symbol + "-" + feeAmount,
-                                            methodName: 'getPool',
+                                            methodName: "getPool",
                                             methodParameters: [
                                                 removeEthFromContractAddress(fromToken.contractAddress),
                                                 removeEthFromContractAddress(toToken.contractAddress),
@@ -178,7 +196,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                         if (this._settings.uniswapVersions.includes(UniswapVersion.v2)) {
                             results = contractCallResults.results[UniswapVersion.v2];
                             availablePairs = results.callsReturnContext.filter(function (c) {
-                                return c.returnValues[0] !== '0x0000000000000000000000000000000000000000';
+                                return c.returnValues[0] !== "0x0000000000000000000000000000000000000000";
                             });
                             fromTokenRoutes = {
                                 token: this._fromToken,
@@ -208,7 +226,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                         if (this._settings.uniswapVersions.includes(UniswapVersion.v3)) {
                             results = contractCallResults.results[UniswapVersion.v3];
                             availablePairs = results.callsReturnContext.filter(function (c) {
-                                return c.returnValues[0] !== '0x0000000000000000000000000000000000000000';
+                                return c.returnValues[0] !== "0x0000000000000000000000000000000000000000";
                             });
                             fromTokenRoutes = {
                                 token: this._fromToken,
@@ -235,7 +253,13 @@ var UniswapRouterFactory = /** @class */ (function () {
                             // console.log(JSON.stringify(allMainRoutes, null, 4));
                             allPossibleRoutes.v3 = this.workOutAllPossibleRoutesV3(fromTokenRoutes, toTokenRoutes, allMainRoutes);
                         }
-                        // console.log(JSON.stringify(allPossibleRoutes, null, 4));
+                        newCache = {
+                            lastFetch: currentTime,
+                            data: allPossibleRoutes,
+                            from: this.mainCurrenciesPairsForFromToken,
+                            to: this.mainCurrenciesPairsForToToken,
+                        };
+                        cacheInstance.set(this._fromToken.contractAddress, this._toToken.contractAddress, newCache);
                         return [2 /*return*/, allPossibleRoutes];
                 }
             });
@@ -272,8 +296,8 @@ var UniswapRouterFactory = /** @class */ (function () {
                                 contractCallContext[0].calls.push({
                                     reference: "route" + i,
                                     methodName: direction === TradeDirection.input
-                                        ? 'getAmountsOut'
-                                        : 'getAmountsIn',
+                                        ? "getAmountsOut"
+                                        : "getAmountsIn",
                                     methodParameters: [tradeAmount, routeCombo],
                                 });
                             }
@@ -296,8 +320,8 @@ var UniswapRouterFactory = /** @class */ (function () {
                                     contractCallContext[this._settings.uniswapVersions.includes(UniswapVersion.v2) ? 1 : 0].calls.push({
                                         reference: "route" + i,
                                         methodName: direction === TradeDirection.input
-                                            ? 'quoteExactInputSingle'
-                                            : 'quoteExactOutputSingle',
+                                            ? "quoteExactInputSingle"
+                                            : "quoteExactOutputSingle",
                                         methodParameters: [
                                             routeCombo[0],
                                             routeCombo[1],
@@ -311,8 +335,8 @@ var UniswapRouterFactory = /** @class */ (function () {
                                     contractCallContext[this._settings.uniswapVersions.includes(UniswapVersion.v2) ? 1 : 0].calls.push({
                                         reference: "route" + i,
                                         methodName: direction === TradeDirection.input
-                                            ? 'quoteExactInput'
-                                            : 'quoteExactOutput',
+                                            ? "quoteExactInput"
+                                            : "quoteExactOutput",
                                         methodParameters: [
                                             this.getEncodedPoolsPath(routeCombo, routes.v3[i].liquidityProviderFeesV3, direction),
                                             tradeAmount,
@@ -432,7 +456,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return this.generateTradeDataForV3Input(parseEther(ethAmountIn), convertedMinTokens, routeQuoteTradeContext, deadline);
             default:
-                throw new UniswapError('Uniswap version not supported', ErrorCodes.uniswapVersionNotSupported);
+                throw new UniswapError("Uniswap version not supported", ErrorCodes.uniswapVersionNotSupported);
         }
     };
     /**
@@ -454,7 +478,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return this.generateTradeDataForV3Output(amountOut, parseEther(ethAmountInMax), routeQuoteTradeContext, deadline);
             default:
-                throw new UniswapError('Uniswap version not supported', ErrorCodes.uniswapVersionNotSupported);
+                throw new UniswapError("Uniswap version not supported", ErrorCodes.uniswapVersionNotSupported);
         }
     };
     /**
@@ -477,7 +501,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return this.generateTradeDataForV3Input(amountIn, parseEther(ethAmountOutMin), routeQuoteTradeContext, deadline);
             default:
-                throw new UniswapError('Uniswap version not supported', ErrorCodes.uniswapVersionNotSupported);
+                throw new UniswapError("Uniswap version not supported", ErrorCodes.uniswapVersionNotSupported);
         }
     };
     /**
@@ -500,7 +524,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return this.generateTradeDataForV3Output(parseEther(ethAmountOut), amountInMax, routeQuoteTradeContext, deadline);
             default:
-                throw new UniswapError('Uniswap version not supported', ErrorCodes.uniswapVersionNotSupported);
+                throw new UniswapError("Uniswap version not supported", ErrorCodes.uniswapVersionNotSupported);
         }
     };
     /**
@@ -524,7 +548,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return this.generateTradeDataForV3Input(amountIn, amountMin, routeQuoteTradeContext, deadline);
             default:
-                throw new UniswapError('Uniswap version not supported', ErrorCodes.uniswapVersionNotSupported);
+                throw new UniswapError("Uniswap version not supported", ErrorCodes.uniswapVersionNotSupported);
         }
     };
     /**
@@ -548,7 +572,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return this.generateTradeDataForV3Output(amountOut, amountInMax, routeQuoteTradeContext, deadline);
             default:
-                throw new UniswapError('Uniswap version not supported', ErrorCodes.uniswapVersionNotSupported);
+                throw new UniswapError("Uniswap version not supported", ErrorCodes.uniswapVersionNotSupported);
         }
     };
     /**
@@ -568,7 +592,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                 tokenOut: removeEthFromContractAddress(this._toToken.contractAddress),
                 fee: percentToFeeAmount(routeQuoteTradeContext.liquidityProviderFeesV3[0]),
                 recipient: isNativeReceivingNativeEth === true
-                    ? '0x0000000000000000000000000000000000000000'
+                    ? "0x0000000000000000000000000000000000000000"
                     : this._ethereumAddress,
                 deadline: deadline,
                 amountIn: hexlify(tokenAmount),
@@ -583,7 +607,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                     return removeEthFromContractAddress(r);
                 }), routeQuoteTradeContext.liquidityProviderFeesV3, TradeDirection.input),
                 recipient: isNativeReceivingNativeEth === true
-                    ? '0x0000000000000000000000000000000000000000'
+                    ? "0x0000000000000000000000000000000000000000"
                     : this._ethereumAddress,
                 deadline: deadline,
                 amountIn: hexlify(tokenAmount),
@@ -613,7 +637,7 @@ var UniswapRouterFactory = /** @class */ (function () {
                 tokenOut: removeEthFromContractAddress(this._toToken.contractAddress),
                 fee: percentToFeeAmount(routeQuoteTradeContext.liquidityProviderFee[0]),
                 recipient: isNativeReceivingNativeEth === true
-                    ? '0x0000000000000000000000000000000000000000'
+                    ? "0x0000000000000000000000000000000000000000"
                     : this._ethereumAddress,
                 deadline: deadline,
                 amountOut: hexlify(amountOut),
@@ -626,7 +650,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             var params = {
                 path: this.getEncodedPoolsPath(routeQuoteTradeContext.routePathArray, routeQuoteTradeContext.liquidityProviderFeesV3, TradeDirection.output),
                 recipient: isNativeReceivingNativeEth === true
-                    ? '0x0000000000000000000000000000000000000000'
+                    ? "0x0000000000000000000000000000000000000000"
                     : this._ethereumAddress,
                 deadline: deadline,
                 amountOut: hexlify(amountOut),
@@ -1043,14 +1067,14 @@ var UniswapRouterFactory = /** @class */ (function () {
     };
     UniswapRouterFactory.prototype.getFromRouterDirectionAvailablePairs = function (token, allAvailablePairs) {
         var fromRouterDirection = allAvailablePairs.filter(function (c) {
-            return isSameAddress(token.contractAddress, c.reference.split('-')[0]);
+            return isSameAddress(token.contractAddress, c.reference.split("-")[0]);
         });
         var pools = [];
         var _loop_4 = function (index) {
             var context = fromRouterDirection[index];
             pools.push({
                 token: this_2.allTokens.find(function (t) {
-                    return isSameAddress(t.contractAddress, context.reference.split('-')[1]);
+                    return isSameAddress(t.contractAddress, context.reference.split("-")[1]);
                 }),
             });
         };
@@ -1062,14 +1086,14 @@ var UniswapRouterFactory = /** @class */ (function () {
     };
     UniswapRouterFactory.prototype.getToRouterDirectionAvailablePairs = function (token, allAvailablePairs) {
         var fromRouterDirection = allAvailablePairs.filter(function (c) {
-            return isSameAddress(token.contractAddress, c.reference.split('-')[1]);
+            return isSameAddress(token.contractAddress, c.reference.split("-")[1]);
         });
         var pools = [];
         var _loop_5 = function (index) {
             var context = fromRouterDirection[index];
             pools.push({
                 token: this_3.allTokens.find(function (t) {
-                    return isSameAddress(t.contractAddress, context.reference.split('-')[0]);
+                    return isSameAddress(t.contractAddress, context.reference.split("-")[0]);
                 }),
             });
         };
@@ -1100,11 +1124,14 @@ var UniswapRouterFactory = /** @class */ (function () {
             return isSameAddress(t.token.contractAddress, toTokenRoutes.token.contractAddress);
         });
         if (directRoute) {
-            var isBlox = fromTokenRoutes.token.symbol === "BLOX" || toTokenRoutes.token.symbol === "BLOX";
+            var isBlox = fromTokenRoutes.token.symbol === "BLOX" ||
+                toTokenRoutes.token.symbol === "BLOX";
             routes.push({
                 route: [fromTokenRoutes.token, toTokenRoutes.token],
                 liquidityProviderFee: 0,
-                liquidityProviderFeesV3: [isBlox ? 0.01 : feeToPercent(directRoute.fee)],
+                liquidityProviderFeesV3: [
+                    isBlox ? 0.01 : feeToPercent(directRoute.fee),
+                ],
             });
         }
         var _loop_6 = function (i) {
@@ -1142,7 +1169,8 @@ var UniswapRouterFactory = /** @class */ (function () {
                         if (workedOutFromRoute.filter(onlyUnique).length ===
                             workedOutFromRoute.length) {
                             var feeFrom2Support = fromTokenRoutes.pairs.fromTokenPairs[f].fee;
-                            var isBloxFrom2Support = fromTokenRoutes.pairs.fromTokenPairs[f].token.symbol === "BLOX";
+                            var isBloxFrom2Support = fromTokenRoutes.pairs.fromTokenPairs[f].token.symbol ===
+                                "BLOX";
                             var feeSupport2Main = tokenRoute.pairs.toTokenPairs.find(function (pair) {
                                 return isSameAddress(pair.token.contractAddress, fromSupportedToken.contractAddress);
                             }).fee;
@@ -1215,12 +1243,12 @@ var UniswapRouterFactory = /** @class */ (function () {
         var pools = [];
         var _loop_9 = function (index) {
             var context = allAvailablePairs[index];
-            if (isSameAddress(context.reference.split('-')[0], token.contractAddress)) {
+            if (isSameAddress(context.reference.split("-")[0], token.contractAddress)) {
                 pools.push({
                     token: this_4.allTokens.find(function (t) {
-                        return isSameAddress(t.contractAddress, context.reference.split('-')[1]);
+                        return isSameAddress(t.contractAddress, context.reference.split("-")[1]);
                     }),
-                    fee: parseInt(context.reference.split('-')[3]),
+                    fee: parseInt(context.reference.split("-")[3]),
                 });
             }
         };
@@ -1234,12 +1262,12 @@ var UniswapRouterFactory = /** @class */ (function () {
         var pools = [];
         var _loop_10 = function (index) {
             var context = allAvailablePairs[index];
-            if (isSameAddress(context.reference.split('-')[1], token.contractAddress)) {
+            if (isSameAddress(context.reference.split("-")[1], token.contractAddress)) {
                 pools.push({
                     token: this_5.allTokens.find(function (t) {
-                        return isSameAddress(t.contractAddress, context.reference.split('-')[0]);
+                        return isSameAddress(t.contractAddress, context.reference.split("-")[0]);
                     }),
-                    fee: parseInt(context.reference.split('-')[3]),
+                    fee: parseInt(context.reference.split("-")[3]),
                 });
             }
         };
@@ -1355,15 +1383,17 @@ var UniswapRouterFactory = /** @class */ (function () {
                         return _this.allTokens.find(function (t) { return t.contractAddress === c; })
                             .symbol;
                     })
-                        .join(' > '),
+                        .join(" > "),
                     routePathArray: routePathArray,
                     uniswapVersion: uniswapVersion,
-                    liquidityProviderFee: uniswapVersion === UniswapVersion.v2 ? routeContext.liquidityProviderFee : 0,
+                    liquidityProviderFee: uniswapVersion === UniswapVersion.v2
+                        ? routeContext.liquidityProviderFee
+                        : 0,
                     liquidityProviderFeesV3: routeContext.liquidityProviderFeesV3,
                     quoteDirection: direction,
                 };
             default:
-                throw new UniswapError('Invalid uniswap version', uniswapVersion);
+                throw new UniswapError("Invalid uniswap version", uniswapVersion);
         }
     };
     /**
@@ -1422,16 +1452,18 @@ var UniswapRouterFactory = /** @class */ (function () {
                         return _this.allTokens.find(function (t) { return t.contractAddress === c; })
                             .symbol;
                     })
-                        .join(' > '),
+                        .join(" > "),
                     // route array is always in the 1 index of the method parameters
                     routePathArray: routePathArray,
                     uniswapVersion: uniswapVersion,
-                    liquidityProviderFee: uniswapVersion === UniswapVersion.v2 ? routeContext.liquidityProviderFee : 0,
+                    liquidityProviderFee: uniswapVersion === UniswapVersion.v2
+                        ? routeContext.liquidityProviderFee
+                        : 0,
                     liquidityProviderFeesV3: routeContext.liquidityProviderFeesV3,
                     quoteDirection: direction,
                 };
             default:
-                throw new UniswapError('Invalid uniswap version', uniswapVersion);
+                throw new UniswapError("Invalid uniswap version", uniswapVersion);
         }
     };
     /**
@@ -1488,16 +1520,18 @@ var UniswapRouterFactory = /** @class */ (function () {
                         return _this.allTokens.find(function (t) { return t.contractAddress === c; })
                             .symbol;
                     })
-                        .join(' > '),
+                        .join(" > "),
                     // route array is always in the 1 index of the method parameters
                     routePathArray: routePathArray,
                     uniswapVersion: uniswapVersion,
-                    liquidityProviderFee: uniswapVersion === UniswapVersion.v2 ? routeContext.liquidityProviderFee : 0,
+                    liquidityProviderFee: uniswapVersion === UniswapVersion.v2
+                        ? routeContext.liquidityProviderFee
+                        : 0,
                     liquidityProviderFeesV3: routeContext.liquidityProviderFeesV3,
                     quoteDirection: direction,
                 };
             default:
-                throw new UniswapError('Invalid uniswap version', uniswapVersion);
+                throw new UniswapError("Invalid uniswap version", uniswapVersion);
         }
     };
     /**
@@ -1518,7 +1552,7 @@ var UniswapRouterFactory = /** @class */ (function () {
             case UniswapVersion.v3:
                 return new BigNumber(callReturnContext.returnValues[0].hex);
             default:
-                throw new UniswapError('Invalid uniswap version', uniswapVersion);
+                throw new UniswapError("Invalid uniswap version", uniswapVersion);
         }
     };
     /**
@@ -1586,7 +1620,7 @@ var UniswapRouterFactory = /** @class */ (function () {
      */
     UniswapRouterFactory.prototype.getEncodedPoolsPath = function (tokens, fees, direction) {
         if (tokens.length < 2 || tokens.length - fees.length != 1) {
-            throw new UniswapError('Invalid V3 Route', ErrorCodes.tradePathIsNotSupported);
+            throw new UniswapError("Invalid V3 Route", ErrorCodes.tradePathIsNotSupported);
         }
         var convertedTokens = direction == TradeDirection.input ? tokens : deepClone(tokens).reverse();
         var convertedFees = direction == TradeDirection.input ? fees : deepClone(fees).reverse();
@@ -1595,7 +1629,7 @@ var UniswapRouterFactory = /** @class */ (function () {
         for (var i = 0; i < convertedFees.length; i++) {
             contractPath += percentToFeeAmount(convertedFees[i])
                 .toString(16)
-                .padStart(6, '0');
+                .padStart(6, "0");
             contractPath += convertedTokens[i + 1].slice(2).toLowerCase();
         }
         return "0x" + contractPath;

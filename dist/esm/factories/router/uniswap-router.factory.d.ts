@@ -1,12 +1,13 @@
-import BigNumber from 'bignumber.js';
-import { CoinGecko } from '../../coin-gecko';
-import { EthersProvider } from '../../ethers-provider';
-import { TradeDirection } from '../pair/models/trade-direction';
-import { UniswapPairSettings } from '../pair/models/uniswap-pair-settings';
-import { Token } from '../token/models/token';
-import { AllPossibleRoutes } from './models/all-possible-routes';
-import { BestRouteQuotes } from './models/best-route-quotes';
-import { RouteQuote } from './models/route-quote';
+import BigNumber from "bignumber.js";
+import { CoinGecko } from "../../coin-gecko";
+import { EthersProvider } from "../../ethers-provider";
+import { TradeDirection } from "../pair/models/trade-direction";
+import { UniswapPairSettings } from "../pair/models/uniswap-pair-settings";
+import { CacheManagerContext } from "../pair/models/uniswap-pair-factory-context";
+import { Token } from "../token/models/token";
+import { AllPossibleRoutes } from "./models/all-possible-routes";
+import { BestRouteQuotes } from "./models/best-route-quotes";
+import { RouteQuote } from "./models/route-quote";
 export declare class UniswapRouterFactory {
     private _coinGecko;
     private _ethereumAddress;
@@ -14,12 +15,13 @@ export declare class UniswapRouterFactory {
     private _toToken;
     private _settings;
     private _ethersProvider;
+    private _cacheManager;
     private _multicall;
     private _uniswapRouterContractFactoryV2;
     private _uniswapRouterContractFactoryV3;
     private _tokensFactory;
     private readonly LIQUIDITY_PROVIDER_FEE_V2;
-    constructor(_coinGecko: CoinGecko, _ethereumAddress: string, _fromToken: Token, _toToken: Token, _settings: UniswapPairSettings, _ethersProvider: EthersProvider);
+    constructor(_coinGecko: CoinGecko, _ethereumAddress: string, _fromToken: Token, _toToken: Token, _settings: UniswapPairSettings, _ethersProvider: EthersProvider, _cacheManager: CacheManagerContext);
     /**
      * Get all possible routes will only go up to 4 due to gas increase the more routes
      * you go.

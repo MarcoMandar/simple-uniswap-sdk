@@ -1,22 +1,27 @@
-import { CoinGecko } from '../../coin-gecko';
-import { ErrorCodes } from '../../common/errors/error-codes';
-import { UniswapError } from '../../common/errors/uniswap-error';
-import { getAddress } from '../../common/utils/get-address';
-import { isAddress } from '../../common/utils/is-address';
-import { ChainId } from '../../enums/chain-id';
-import { EthersProvider } from '../../ethers-provider';
-import { TokensFactory } from '../token/tokens.factory';
+import { CoinGecko } from "../../coin-gecko";
+import { ErrorCodes } from "../../common/errors/error-codes";
+import { UniswapError } from "../../common/errors/uniswap-error";
+import { getAddress } from "../../common/utils/get-address";
+import { isAddress } from "../../common/utils/is-address";
+import { ChainId } from "../../enums/chain-id";
+import { EthersProvider } from "../../ethers-provider";
+import { TokensFactory } from "../token/tokens.factory";
 import {
   UniswapPairContextForChainId,
   UniswapPairContextForEthereumProvider,
   UniswapPairContextForProviderUrl,
-} from './models/uniswap-pair-contexts';
-import { UniswapPairFactoryContext } from './models/uniswap-pair-factory-context';
-import { UniswapPairSettings } from './models/uniswap-pair-settings';
-import { UniswapPairFactory } from './uniswap-pair.factory';
+} from "./models/uniswap-pair-contexts";
+import {
+  UniswapPairFactoryContext,
+  CacheManagerContext,
+} from "./models/uniswap-pair-factory-context";
+import { UniswapPairSettings } from "./models/uniswap-pair-settings";
+
+import { UniswapPairFactory } from "./uniswap-pair.factory";
 
 export class UniswapPair {
   private _ethersProvider: EthersProvider;
+  private _cacheManager: CacheManagerContext;
 
   constructor(
     private _uniswapPairContext:
@@ -26,14 +31,14 @@ export class UniswapPair {
   ) {
     if (!this._uniswapPairContext.fromTokenContractAddress) {
       throw new UniswapError(
-        'Must have a `fromTokenContractAddress` on the context',
+        "Must have a `fromTokenContractAddress` on the context",
         ErrorCodes.fromTokenContractAddressRequired
       );
     }
 
     if (!isAddress(this._uniswapPairContext.fromTokenContractAddress)) {
       throw new UniswapError(
-        '`fromTokenContractAddress` is not a valid contract address',
+        "`fromTokenContractAddress` is not a valid contract address",
         ErrorCodes.fromTokenContractAddressNotValid
       );
     }
@@ -42,17 +47,42 @@ export class UniswapPair {
       this._uniswapPairContext.fromTokenContractAddress,
       true
     );
+    this._cacheManager = this._uniswapPairContext.cacheManager || {
+      cache: {},
+      getCacheKey(fromToken: string, toToken: string) {
+        return `${fromToken}-${toToken}`;
+      },
+
+      get(fromToken: string, toToken: string) {
+        const key = this.getCacheKey(fromToken, toToken);
+        return this.cache[key];
+      },
+      set(fromToken: string, toToken: string, data: any) {
+        const key = this.getCacheKey(fromToken, toToken);
+        this.cache[key] = {
+          lastFetch: Date.now(),
+          data: data,
+        };
+      },
+      isValid: (fromToken: any, toToken: any) => {
+        const cacheEntry = this._cacheManager.get(fromToken, toToken);
+        if (!cacheEntry) return false;
+
+        const fiveMinutes = 300000; // 5 minutes in milliseconds
+        return Date.now() - cacheEntry.lastFetch < fiveMinutes;
+      },
+    };
 
     if (!this._uniswapPairContext.toTokenContractAddress) {
       throw new UniswapError(
-        'Must have a `toTokenContractAddress` on the context',
+        "Must have a `toTokenContractAddress` on the context",
         ErrorCodes.toTokenContractAddressRequired
       );
     }
 
     if (!isAddress(this._uniswapPairContext.toTokenContractAddress)) {
       throw new UniswapError(
-        '`toTokenContractAddress` is not a valid contract address',
+        "`toTokenContractAddress` is not a valid contract address",
         ErrorCodes.toTokenContractAddressNotValid
       );
     }
@@ -64,14 +94,14 @@ export class UniswapPair {
 
     if (!this._uniswapPairContext.ethereumAddress) {
       throw new UniswapError(
-        'Must have a `ethereumAddress` on the context',
+        "Must have a `ethereumAddress` on the context",
         ErrorCodes.ethereumAddressRequired
       );
     }
 
     if (!isAddress(this._uniswapPairContext.ethereumAddress)) {
       throw new UniswapError(
-        '`ethereumAddress` is not a valid address',
+        "`ethereumAddress` is not a valid address",
         ErrorCodes.ethereumAddressNotValid
       );
     }
@@ -114,7 +144,7 @@ export class UniswapPair {
     }
 
     throw new UniswapError(
-      'Your must supply a chainId or a ethereum provider please look at types `UniswapPairContextForEthereumProvider`, `UniswapPairContextForChainId` and `UniswapPairContextForProviderUrl` to make sure your object is correct in what your passing in',
+      "Your must supply a chainId or a ethereum provider please look at types `UniswapPairContextForEthereumProvider`, `UniswapPairContextForChainId` and `UniswapPairContextForProviderUrl` to make sure your object is correct in what your passing in",
       ErrorCodes.invalidPairContext
     );
   }
@@ -162,6 +192,7 @@ export class UniswapPair {
       ethereumAddress: this._uniswapPairContext.ethereumAddress,
       settings: this._uniswapPairContext.settings || new UniswapPairSettings(),
       ethersProvider: this._ethersProvider,
+      cacheManager: this._cacheManager,
     };
 
     return new UniswapPairFactory(new CoinGecko(), uniswapFactoryContext);

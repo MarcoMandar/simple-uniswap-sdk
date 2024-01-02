@@ -41,6 +41,7 @@ var uniswap_version_1 = require("../enums/uniswap-version");
 var uniswap_pair_settings_1 = require("../factories/pair/models/uniswap-pair-settings");
 var uniswap_pair_1 = require("../factories/pair/uniswap-pair");
 var index_1 = require("../index");
+var cache_manager_1 = require("../factories/router/cache-manager");
 // WBTC - 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599
 // FUN - 0x419D0d8BdD9aF5e606Ae2232ed285Aff190E711b
 // REP - 0x1985365e9f78359a9B6AD760e32412f4a445E862
@@ -48,20 +49,22 @@ var index_1 = require("../index");
 // UNI - 0x1f9840a85d5af5bf1d1762f925bdaddc4201f984
 // AAVE - 0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9
 // GTC - 0xde30da39c46104798bb5aa3fe8b9e0e1f348163f
+var cacheManager = new cache_manager_1.CacheManager();
 var routeTest = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var fromTokenContractAddress, toTokenContractAddress, ethereumAddress, uniswapPair, startTime, uniswapPairFactory, trade, ethers;
+    var fromTokenContractAddress, toTokenContractAddress, ethereumAddress, uniswapPair, uniswapPairFactory, trade, expectedConvertQuote, baseConvertRequest, expectedConvertQuote2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('start', index_1.ETH.MAINNET().contractAddress);
-                fromTokenContractAddress = index_1.ETH.MAINNET().contractAddress;
-                toTokenContractAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
-                ethereumAddress = '0x37c81284caA97131339415687d192BF7D18F0f2a';
+                console.log("start", index_1.ETH.MAINNET().contractAddress);
+                fromTokenContractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+                toTokenContractAddress = "0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36";
+                ethereumAddress = "0x37c81284caA97131339415687d192BF7D18F0f2a";
                 uniswapPair = new uniswap_pair_1.UniswapPair({
                     fromTokenContractAddress: fromTokenContractAddress,
                     toTokenContractAddress: toTokenContractAddress,
                     ethereumAddress: ethereumAddress,
                     chainId: chain_id_1.ChainId.MAINNET,
+                    cacheManager: cacheManager,
                     settings: new uniswap_pair_settings_1.UniswapPairSettings({
                         // if not supplied it use `0.005` which is 0.5%;
                         // all figures
@@ -72,26 +75,62 @@ var routeTest = function () { return __awaiter(void 0, void 0, void 0, function 
                         uniswapVersions: [uniswap_version_1.UniswapVersion.v2, uniswap_version_1.UniswapVersion.v3],
                         gasSettings: {
                             getGasPrice: function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                                return [2 /*return*/, '90'];
+                                return [2 /*return*/, "90"];
                             }); }); },
                         },
                     }),
                 });
-                startTime = new Date().getTime();
                 return [4 /*yield*/, uniswapPair.createFactory()];
             case 1:
                 uniswapPairFactory = _a.sent();
-                return [4 /*yield*/, uniswapPairFactory.trade('0.0001', index_1.TradeDirection.input)];
+                return [4 /*yield*/, uniswapPairFactory.trade("1000000", index_1.TradeDirection.output)];
             case 2:
                 trade = _a.sent();
-                console.log(new Date().getTime() - startTime);
+                // console.log(new Date().getTime() - startTime);
                 console.log(trade);
-                ethers = new index_1.EthersProvider({ chainId: chain_id_1.ChainId.MAINNET });
-                return [4 /*yield*/, ethers.provider.estimateGas(trade.transaction)];
-            case 3:
-                _a.sent();
+                expectedConvertQuote = parseFloat(trade.expectedConvertQuote);
+                baseConvertRequest = parseFloat(trade.baseConvertRequest);
+                expectedConvertQuote2 = parseFloat(trade.expectedConvertQuote);
+                console.log({
+                    expectedConvertQuote: expectedConvertQuote,
+                    baseConvertRequest: baseConvertRequest,
+                    expectedConvertQuote2: expectedConvertQuote2,
+                });
                 return [2 /*return*/];
         }
     });
 }); };
-routeTest();
+var runTestWithDelay = function (delay, count) {
+    if (count === void 0) { count = 3; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var i, start, end, duration;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    i = 0;
+                    _a.label = 1;
+                case 1:
+                    if (!(i < count)) return [3 /*break*/, 5];
+                    console.log("Running test iteration: " + (i + 1) + " - Timestamp: " + new Date().toISOString());
+                    start = new Date().getTime();
+                    return [4 /*yield*/, routeTest()];
+                case 2:
+                    _a.sent();
+                    end = new Date().getTime();
+                    duration = end - start;
+                    console.log("Iteration " + (i + 1) + " completed. Time taken: " + duration + " ms");
+                    console.log("------------------------------------");
+                    if (!(i < count - 1)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, delay); })];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
+                case 4:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+};
+runTestWithDelay(2000);

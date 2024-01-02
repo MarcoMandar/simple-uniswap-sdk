@@ -60,7 +60,7 @@ var UniswapPairFactory = /** @class */ (function () {
         this._uniswapPairFactoryContext = _uniswapPairFactoryContext;
         this._fromTokenFactory = new token_factory_1.TokenFactory(this._uniswapPairFactoryContext.fromToken.contractAddress, this._uniswapPairFactoryContext.ethersProvider, this._uniswapPairFactoryContext.settings.customNetwork, this._uniswapPairFactoryContext.settings.cloneUniswapContractDetails);
         this._toTokenFactory = new token_factory_1.TokenFactory(this._uniswapPairFactoryContext.toToken.contractAddress, this._uniswapPairFactoryContext.ethersProvider, this._uniswapPairFactoryContext.settings.customNetwork);
-        this._uniswapRouterFactory = new uniswap_router_factory_1.UniswapRouterFactory(this._coinGecko, this._uniswapPairFactoryContext.ethereumAddress, this._uniswapPairFactoryContext.fromToken, this._uniswapPairFactoryContext.toToken, this._uniswapPairFactoryContext.settings, this._uniswapPairFactoryContext.ethersProvider);
+        this._uniswapRouterFactory = new uniswap_router_factory_1.UniswapRouterFactory(this._coinGecko, this._uniswapPairFactoryContext.ethereumAddress, this._uniswapPairFactoryContext.fromToken, this._uniswapPairFactoryContext.toToken, this._uniswapPairFactoryContext.settings, this._uniswapPairFactoryContext.ethersProvider, this._uniswapPairFactoryContext.cacheManager);
         this._watchingBlocks = false;
         this._quoteChanged$ = new rxjs_1.Subject();
     }
@@ -286,7 +286,7 @@ var UniswapPairFactory = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (this.tradePath() === trade_path_2.TradePath.ethToErc20) {
-                            return [2 /*return*/, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'];
+                            return [2 /*return*/, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"];
                         }
                         return [4 /*yield*/, this._fromTokenFactory.allowance(uniswapVersion, this._uniswapPairFactoryContext.ethereumAddress)];
                     case 1:
@@ -306,11 +306,11 @@ var UniswapPairFactory = /** @class */ (function () {
             var data;
             return __generator(this, function (_a) {
                 if (this.tradePath() === trade_path_2.TradePath.ethToErc20) {
-                    throw new uniswap_error_1.UniswapError('You do not need to generate approve uniswap allowance when doing eth > erc20', error_codes_1.ErrorCodes.generateApproveMaxAllowanceDataNotAllowed);
+                    throw new uniswap_error_1.UniswapError("You do not need to generate approve uniswap allowance when doing eth > erc20", error_codes_1.ErrorCodes.generateApproveMaxAllowanceDataNotAllowed);
                 }
                 data = this._fromTokenFactory.generateApproveAllowanceData(uniswapVersion === uniswap_version_1.UniswapVersion.v2
                     ? get_uniswap_contracts_1.uniswapContracts.v2.getRouterAddress(this._uniswapPairFactoryContext.settings.cloneUniswapContractDetails)
-                    : get_uniswap_contracts_1.uniswapContracts.v3.getRouterAddress(this._uniswapPairFactoryContext.settings.cloneUniswapContractDetails), '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+                    : get_uniswap_contracts_1.uniswapContracts.v3.getRouterAddress(this._uniswapPairFactoryContext.settings.cloneUniswapContractDetails), "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
                 return [2 /*return*/, {
                         to: this.fromToken.contractAddress,
                         from: this._uniswapPairFactoryContext.ethereumAddress,
@@ -377,9 +377,15 @@ var UniswapPairFactory = /** @class */ (function () {
                                 : bestRouteQuote.expectedConvertQuoteOrTokenAmountInMaxWithSlippage,
                             expectedConvertQuote: bestRouteQuote.expectedConvertQuote,
                             liquidityProviderFee: direction === trade_direction_1.TradeDirection.input
-                                ? baseConvertRequest.times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee).toFixed(this.fromToken.decimals)
+                                ? baseConvertRequest
+                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3
+                                    ? 0
+                                    : bestRouteQuote.liquidityProviderFee)
+                                    .toFixed(this.fromToken.decimals)
                                 : new bignumber_js_1.default(bestRouteQuote.expectedConvertQuote)
-                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee)
+                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3
+                                    ? 0
+                                    : bestRouteQuote.liquidityProviderFee)
                                     .toFixed(this.fromToken.decimals),
                             liquidityProviderFeePercent: bestRouteQuote.liquidityProviderFee,
                             liquidityProviderFeesV3: bestRouteQuote.liquidityProviderFeesV3.map(function (f) {
@@ -456,9 +462,15 @@ var UniswapPairFactory = /** @class */ (function () {
                                 : bestRouteQuote.expectedConvertQuoteOrTokenAmountInMaxWithSlippage,
                             expectedConvertQuote: bestRouteQuote.expectedConvertQuote,
                             liquidityProviderFee: direction === trade_direction_1.TradeDirection.input
-                                ? baseConvertRequest.times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee).toFixed(this.fromToken.decimals)
+                                ? baseConvertRequest
+                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3
+                                    ? 0
+                                    : bestRouteQuote.liquidityProviderFee)
+                                    .toFixed(this.fromToken.decimals)
                                 : new bignumber_js_1.default(bestRouteQuote.expectedConvertQuote)
-                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee)
+                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3
+                                    ? 0
+                                    : bestRouteQuote.liquidityProviderFee)
                                     .toFixed(this.fromToken.decimals),
                             liquidityProviderFeePercent: bestRouteQuote.liquidityProviderFee,
                             liquidityProviderFeesV3: bestRouteQuote.liquidityProviderFeesV3.map(function (f) {
@@ -533,9 +545,15 @@ var UniswapPairFactory = /** @class */ (function () {
                                 : bestRouteQuote.expectedConvertQuoteOrTokenAmountInMaxWithSlippage,
                             expectedConvertQuote: bestRouteQuote.expectedConvertQuote,
                             liquidityProviderFee: direction === trade_direction_1.TradeDirection.input
-                                ? baseConvertRequest.times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee).toFixed(this.fromToken.decimals)
+                                ? baseConvertRequest
+                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3
+                                    ? 0
+                                    : bestRouteQuote.liquidityProviderFee)
+                                    .toFixed(this.fromToken.decimals)
                                 : new bignumber_js_1.default(bestRouteQuote.expectedConvertQuote)
-                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3 ? 0 : bestRouteQuote.liquidityProviderFee)
+                                    .times(bestRouteQuote.uniswapVersion === uniswap_version_1.UniswapVersion.v3
+                                    ? 0
+                                    : bestRouteQuote.liquidityProviderFee)
                                     .toFixed(this.fromToken.decimals),
                             liquidityProviderFeePercent: bestRouteQuote.liquidityProviderFee,
                             liquidityProviderFeesV3: bestRouteQuote.liquidityProviderFeesV3.map(function (f) {
@@ -587,7 +605,7 @@ var UniswapPairFactory = /** @class */ (function () {
     UniswapPairFactory.prototype.watchTradePrice = function () {
         var _this = this;
         if (!this._watchingBlocks) {
-            this._uniswapPairFactoryContext.ethersProvider.provider.on('block', function () { return __awaiter(_this, void 0, void 0, function () {
+            this._uniswapPairFactoryContext.ethersProvider.provider.on("block", function () { return __awaiter(_this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4 /*yield*/, this.handleNewBlock()];
@@ -604,7 +622,7 @@ var UniswapPairFactory = /** @class */ (function () {
      * unwatch any block streams
      */
     UniswapPairFactory.prototype.unwatchTradePrice = function () {
-        this._uniswapPairFactoryContext.ethersProvider.provider.removeAllListeners('block');
+        this._uniswapPairFactoryContext.ethersProvider.provider.removeAllListeners("block");
         this._watchingBlocks = false;
     };
     /**
