@@ -3,10 +3,7 @@ import { UniswapVersion } from "../enums/uniswap-version";
 import { UniswapPairSettings } from "../factories/pair/models/uniswap-pair-settings";
 import { UniswapPair } from "../factories/pair/uniswap-pair";
 import { ETH, /*EthersProvider,*/ TradeDirection } from "../index";
-// import { CacheManager } from "../factories/router/cache-manager";
-import { ethers } from "ethersv5";
-import uniswapV2RouterABI from "../ABI/uniswap-router-v2.json";
-const ifacev2Router = new ethers.utils.Interface(uniswapV2RouterABI);
+import { CacheManager } from "../factories/router/cache-manager";
 
 // WBTC - 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599
 // FUN - 0x419D0d8BdD9aF5e606Ae2232ed285Aff190E711b
@@ -15,80 +12,56 @@ const ifacev2Router = new ethers.utils.Interface(uniswapV2RouterABI);
 // UNI - 0x1f9840a85d5af5bf1d1762f925bdaddc4201f984
 // AAVE - 0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9
 // GTC - 0xde30da39c46104798bb5aa3fe8b9e0e1f348163f
-// const cacheManager = new CacheManager();
+const cacheManager = new CacheManager();
 const routeTest = async () => {
   // console.log("start", ETH.MAINNET().contractAddress);
-  const fromTokenContractAddress = "0x6982508145454Ce325dDbE47a25d4ec3d2311933"; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
-  const toTokenContractAddress = ETH.MAINNET().contractAddress; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
-  const ethereumAddress = "0x11f917976a7B2c5a131dF6B5BBC2Eada3C6Fc79D";
+  const fromTokenContractAddress = ETH.MAINNET().contractAddress; //'0xEf0e839Cf88E47be676E72D5a9cB6CED99FaD1CF';
+  const toTokenContractAddress = "0xc9F00080d96cEA3Ef92D2E2e563d4cD41fB5Bb36"; // 0x1985365e9f78359a9B6AD760e32412f4a445E862
+  const ethereumAddress = "0x37c81284caA97131339415687d192BF7D18F0f2a";
 
   const uniswapPair = new UniswapPair({
     fromTokenContractAddress,
     toTokenContractAddress,
     ethereumAddress,
     chainId: ChainId.MAINNET,
-    providerUrl:
-      "https://mainnet.infura.io/v3/530ac87885a943c7aaca239a6a8beda6",
+    cacheManager: cacheManager,
     settings: new UniswapPairSettings({
       // if not supplied it use `0.005` which is 0.5%;
       // all figures
-      slippage: 0.75,
+      slippage: 0.15,
       // if not supplied it will use 20 a deadline minutes
       deadlineMinutes: 20,
-      disableMultihops: true,
-      uniswapVersions: [UniswapVersion.v2],
-      // gasSettings: {
-      //   getGasPrice: async () => "90",
-      // },
+      disableMultihops: false,
+      uniswapVersions: [UniswapVersion.v2, UniswapVersion.v3],
+      gasSettings: {
+        getGasPrice: async () => "90",
+      },
     }),
   });
 
   // const startTime = new Date().getTime();
 
   const uniswapPairFactory = await uniswapPair.createFactory();
-  const tokenDecimals = uniswapPairFactory.fromToken.decimals;
-  const amount = "79115509459007923";
-  const amountFromWei = ethers.utils.formatUnits(amount, tokenDecimals);
 
-  const trade = await uniswapPairFactory.trade(
-    amountFromWei,
-    TradeDirection.input
-  );
+  const trade = await uniswapPairFactory.trade("1000000", TradeDirection.input);
+
+  // console.log(new Date().getTime() - startTime);
+  console.log(trade);
+  const expectedConvertQuote = parseFloat(trade.expectedConvertQuote);
+  const baseConvertRequest = parseFloat(trade.baseConvertRequest);
+  const expectedConvertQuote2 = parseFloat(trade.expectedConvertQuote);
+  console.log({
+    expectedConvertQuote,
+    baseConvertRequest,
+    expectedConvertQuote2,
+  });
+  // console.log(JSON.stringify(trade, null, 4));
   // console.log(trade);
-  const tx = trade.transaction;
-  const decodev2data = ifacev2Router.parseTransaction({ data: tx?.data });
-  console.log(decodev2data);
-  const data = {
-    amountIn: decodev2data.args.amountIn,
-    amountOutMin: decodev2data.args.amountOutMin,
-    path: decodev2data.args.path,
-    to: decodev2data.args.to,
-    deadline: decodev2data.args.deadline,
-  };
-  console.log(data);
-  const functionName =
-    decodev2data.functionFragment.name === "swapExactTokensForETH"
-      ? "swapExactTokensForETHSupportingFeeOnTransferTokens"
-      : decodev2data.functionFragment.name === "swapExactETHForTokens"
-      ? "swapExactETHForTokensSupportingFeeOnTransferTokens"
-      : decodev2data.functionFragment.name;
-  console.log(functionName);
-  const data2 = ifacev2Router.encodeFunctionData(functionName, [
-    data.amountIn,
-    data.amountOutMin,
-    data.path,
-    data.to,
-    data.deadline,
-  ]);
-  console.log(data2);
-  // const expectedConvertQuote = parseFloat(trade.expectedConvertQuote);
-  // const baseConvertRequest = parseFloat(trade.baseConvertRequest);
-  // const expectedConvertQuote2 = parseFloat(trade.expectedConvertQuote);
-  // console.log({
-  //   expectedConvertQuote,
-  //   baseConvertRequest,
-  //   expectedConvertQuote2,
-  // });
+  // console.log(
+  //   trade.allTriedRoutesQuotes.filter(
+  //     (c) => c.uniswapVersion === UniswapVersion.v3
+  //   )
+  // );
 
   // const ethers = new EthersProvider({ chainId: ChainId.MAINNET });
   // await ethers.provider.estimateGas(trade.transaction);
@@ -135,7 +108,7 @@ const routeTest = async () => {
   // console.log(data);
 };
 
-const runTestWithDelay = async (delay: number, count = 1) => {
+const runTestWithDelay = async (delay: number, count = 3) => {
   for (let i = 0; i < count; i++) {
     console.log(
       `Running test iteration: ${
