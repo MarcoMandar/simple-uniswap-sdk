@@ -1,5 +1,5 @@
-import BigNumber from 'bignumber.js';
-import { parseEther as EthersParseEther } from 'ethers/lib/utils';
+import BigNumber from "bignumber.js";
+import { parseEther as EthersParseEther } from "ethersv5/lib/utils";
 
 /**
  * Convert a string value to wei

@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import BigNumber from "bignumber.js";
 /**
  * Convert a string value to wei
  * @param value The value

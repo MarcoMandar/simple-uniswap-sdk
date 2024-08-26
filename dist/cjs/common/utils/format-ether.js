@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.formatEther = void 0;
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
-var utils_1 = require("ethers/lib/utils");
+var utils_1 = require("ethersv5/lib/utils");
 /**
  * format ether from wei
  * @param wei The value
