@@ -4,7 +4,7 @@ import { UniswapPairSettings } from "../factories/pair/models/uniswap-pair-setti
 import { UniswapPair } from "../factories/pair/uniswap-pair";
 import { ETH, /*EthersProvider,*/ TradeDirection } from "../index";
 // import { CacheManager } from "../factories/router/cache-manager";
-import { ethers } from "ethers";
+import { ethers } from "ethersv5";
 import uniswapV2RouterABI from "../ABI/uniswap-router-v2.json";
 const ifacev2Router = new ethers.utils.Interface(uniswapV2RouterABI);
 
@@ -47,7 +47,7 @@ const routeTest = async () => {
 
   const uniswapPairFactory = await uniswapPair.createFactory();
   const tokenDecimals = uniswapPairFactory.fromToken.decimals;
-  const amount = "4162";
+  const amount = "79115509459007923";
   const amountFromWei = ethers.utils.formatUnits(amount, tokenDecimals);
 
   const trade = await uniswapPairFactory.trade(

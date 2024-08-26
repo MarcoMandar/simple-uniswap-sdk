@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers } from "ethersv5";
 import { removeEthFromContractAddress } from "../tokens/eth";
 
 export function isSameAddress(address1: string, address2: string): boolean {

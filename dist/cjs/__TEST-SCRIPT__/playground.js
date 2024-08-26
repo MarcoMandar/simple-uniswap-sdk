@@ -45,9 +45,9 @@ var uniswap_pair_settings_1 = require("../factories/pair/models/uniswap-pair-set
 var uniswap_pair_1 = require("../factories/pair/uniswap-pair");
 var index_1 = require("../index");
 // import { CacheManager } from "../factories/router/cache-manager";
-var ethers_1 = require("ethers");
+var ethersv5_1 = require("ethersv5");
 var uniswap_router_v2_json_1 = __importDefault(require("../ABI/uniswap-router-v2.json"));
-var ifacev2Router = new ethers_1.ethers.utils.Interface(uniswap_router_v2_json_1.default);
+var ifacev2Router = new ethersv5_1.ethers.utils.Interface(uniswap_router_v2_json_1.default);
 // WBTC - 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599
 // FUN - 0x419D0d8BdD9aF5e606Ae2232ed285Aff190E711b
 // REP - 0x1985365e9f78359a9B6AD760e32412f4a445E862
@@ -84,8 +84,8 @@ var routeTest = function () { return __awaiter(void 0, void 0, void 0, function 
             case 1:
                 uniswapPairFactory = _a.sent();
                 tokenDecimals = uniswapPairFactory.fromToken.decimals;
-                amount = "4162";
-                amountFromWei = ethers_1.ethers.utils.formatUnits(amount, tokenDecimals);
+                amount = "79115509459007923";
+                amountFromWei = ethersv5_1.ethers.utils.formatUnits(amount, tokenDecimals);
                 return [4 /*yield*/, uniswapPairFactory.trade(amountFromWei, index_1.TradeDirection.input)];
             case 2:
                 trade = _a.sent();

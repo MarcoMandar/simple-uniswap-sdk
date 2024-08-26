@@ -40,7 +40,7 @@ import { UniswapPairSettings } from "../factories/pair/models/uniswap-pair-setti
 import { UniswapPair } from "../factories/pair/uniswap-pair";
 import { ETH, /*EthersProvider,*/ TradeDirection } from "../index";
 // import { CacheManager } from "../factories/router/cache-manager";
-import { ethers } from "ethers";
+import { ethers } from "ethersv5";
 import uniswapV2RouterABI from "../ABI/uniswap-router-v2.json";
 var ifacev2Router = new ethers.utils.Interface(uniswapV2RouterABI);
 // WBTC - 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599
@@ -79,7 +79,7 @@ var routeTest = function () { return __awaiter(void 0, void 0, void 0, function 
             case 1:
                 uniswapPairFactory = _a.sent();
                 tokenDecimals = uniswapPairFactory.fromToken.decimals;
-                amount = "4162";
+                amount = "79115509459007923";
                 amountFromWei = ethers.utils.formatUnits(amount, tokenDecimals);
                 return [4 /*yield*/, uniswapPairFactory.trade(amountFromWei, TradeDirection.input)];
             case 2:
